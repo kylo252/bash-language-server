@@ -319,6 +319,8 @@ export default class Analyzer {
 
     const tree = this.parser.parse(contents)
 
+    // TODO: would be nicer to save one map from uri to object containing all
+    // these fields.
     this.uriToTextDocument[uri] = document
     this.uriToTreeSitterTrees[uri] = tree
     this.uriToDeclarations[uri] = {}
@@ -330,6 +332,7 @@ export default class Analyzer {
 
     const problems: LSP.Diagnostic[] = []
 
+    // TODO: move this somewhere
     TreeSitterUtil.forEach(tree.rootNode, (n: Parser.SyntaxNode) => {
       if (n.type === 'ERROR') {
         problems.push(

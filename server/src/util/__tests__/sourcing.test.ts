@@ -11,7 +11,7 @@ describe('getSourcedUris', () => {
     expect(result).toEqual(new Set([]))
   })
 
-  it('returns an empty set if no files were sourced', () => {
+  it('returns a set of sourced files', () => {
     const result = getSourcedUris({
       fileContent: `
 
@@ -26,6 +26,13 @@ describe('getSourcedUris', () => {
       source ~/myscript
 
       # source ...
+
+      source "./my_quoted_file.sh"
+
+      source "$LIBPATH" # dynamic imports not supported
+
+      # conditional is currently not supported
+      if [[ -z $__COMPLETION_LIB_LOADED ]]; then source "$LIBPATH" ; fi
     `,
       fileUri,
     })
@@ -36,6 +43,7 @@ describe('getSourcedUris', () => {
         `${fileDirectory}/x`,
         `${fileDirectory}/relative/to-this.sh`,
         `${homedir()}/myscript`,
+        `${fileDirectory}/my_quoted_file.sh`,
       ]),
     )
   })

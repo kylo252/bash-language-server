@@ -72,6 +72,17 @@ export function getSourcedLocation({
 
 const mapPathToUri = (path: string): string => path.replace('file:', 'file://')
 
+const stripQuotes = (path: string): string => {
+  const first = path[0]
+  const last = path[path.length - 1]
+
+  if (first === last && [`"`, `'`].includes(first)) {
+    return path.slice(1, -1)
+  }
+
+  return path
+}
+
 const getSourcedUri = ({
   relativePath,
   uri,
@@ -83,10 +94,15 @@ const getSourcedUri = ({
   // - we could try to resolve the path
   // - "If filename does not contain a slash, file names in PATH are used to find
   //   the directory containing filename." (see https://ss64.com/osx/source.html)
+  const unquotedRelativePath = stripQuotes(relativePath)
 
-  const resultPath = relativePath.startsWith('~')
-    ? untildify(relativePath)
-    : path.join(path.dirname(uri), relativePath)
+  if (unquotedRelativePath.includes('$')) {
+    return null
+  }
+
+  const resultPath = unquotedRelativePath.startsWith('~')
+    ? untildify(unquotedRelativePath)
+    : path.join(path.dirname(uri), unquotedRelativePath)
 
   return mapPathToUri(resultPath)
 }

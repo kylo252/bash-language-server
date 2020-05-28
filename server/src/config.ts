@@ -40,4 +40,11 @@ export function getBackgroundAnalysisMaxFiles(): number {
   return !isNaN(parsed) ? parsed : DEFAULT_BACKGROUND_ANALYSIS_MAX_FILES
 }
 
+export function getCompletionBasedOnImports(): boolean {
+  const { COMPLETION_BASED_ON_IMPORTS } = process.env
+  return typeof COMPLETION_BASED_ON_IMPORTS !== 'undefined'
+    ? toBoolean(COMPLETION_BASED_ON_IMPORTS)
+    : false
+}
+
 const toBoolean = (s: string): boolean => s === 'true' || s === '1'

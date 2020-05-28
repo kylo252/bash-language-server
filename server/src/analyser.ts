@@ -532,9 +532,10 @@ export default class Analyzer {
   }
 
   private getAllFileDeclarations({ uri }: { uri?: string } = {}): FileDeclarations {
-    const uris = uri
-      ? [uri, ...Array.from(this.findAllSourcedUris({ uri }))]
-      : Object.keys(this.uriToDeclarations)
+    const uris =
+      uri && config.getCompletionBasedOnImports()
+        ? [uri, ...Array.from(this.findAllSourcedUris({ uri }))]
+        : Object.keys(this.uriToDeclarations)
 
     return uris.reduce((fileDeclarations, uri) => {
       fileDeclarations[uri] = this.uriToDeclarations[uri] || {}

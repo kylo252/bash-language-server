@@ -222,9 +222,14 @@ describe('commandNameAtPoint', () => {
 })
 
 describe('findSymbolsMatchingWord', () => {
-  it('return a list of symbols across the workspace', () => {
-    analyzer.analyze('install.sh', FIXTURES.INSTALL)
-    analyzer.analyze('sourcing-sh', FIXTURES.SOURCING)
+  it('return a list of symbols across the workspace (with default config)', async () => {
+    const parser = await initializeParser()
+    const connection = getMockConnection()
+
+    const analyzer = new Analyzer({ console: connection.console, parser })
+    await analyzer.initiateBackgroundAnalysis({
+      rootPath: FIXTURE_FOLDER,
+    })
 
     expect(
       analyzer.findSymbolsMatchingWord({
@@ -232,7 +237,44 @@ describe('findSymbolsMatchingWord', () => {
         uri: FIXTURE_URI.INSTALL,
         exactMatch: false,
       }),
-    ).toMatchInlineSnapshot(`Array []`)
+    ).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "kind": 13,
+          "location": Object {
+            "range": Object {
+              "end": Object {
+                "character": 27,
+                "line": 40,
+              },
+              "start": Object {
+                "character": 0,
+                "line": 40,
+              },
+            },
+            "uri": "file://${FIXTURE_FOLDER}install.sh",
+          },
+          "name": "npm_config_loglevel",
+        },
+        Object {
+          "kind": 13,
+          "location": Object {
+            "range": Object {
+              "end": Object {
+                "character": 31,
+                "line": 48,
+              },
+              "start": Object {
+                "character": 2,
+                "line": 48,
+              },
+            },
+            "uri": "file://${FIXTURE_FOLDER}install.sh",
+          },
+          "name": "npm_config_loglevel",
+        },
+      ]
+    `)
 
     expect(
       analyzer.findSymbolsMatchingWord({
@@ -248,6 +290,76 @@ describe('findSymbolsMatchingWord', () => {
         uri: FIXTURE_URI.INSTALL,
         exactMatch: false,
       }),
+    ).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "kind": 13,
+    "location": Object {
+      "range": Object {
+        "end": Object {
+          "character": 19,
+          "line": 6,
+        },
+        "start": Object {
+          "character": 0,
+          "line": 6,
+        },
+      },
+      "uri": "file://${FIXTURE_FOLDER}extension.inc",
+    },
+    "name": "BLUE",
+  },
+]
+`)
+
+    expect(
+      analyzer.findSymbolsMatchingWord({
+        word: 'BLU',
+        uri: FIXTURE_URI.SOURCING,
+        exactMatch: false,
+      }),
+    ).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "kind": 13,
+    "location": Object {
+      "range": Object {
+        "end": Object {
+          "character": 19,
+          "line": 6,
+        },
+        "start": Object {
+          "character": 0,
+          "line": 6,
+        },
+      },
+      "uri": "file://${FIXTURE_FOLDER}extension.inc",
+    },
+    "name": "BLUE",
+  },
+]
+`)
+  })
+
+  it('return a list of symbols accessible to the uri (when config.COMPLETION_BASED_ON_IMPORTS is true)', async () => {
+    process.env = {
+      COMPLETION_BASED_ON_IMPORTS: '1',
+    }
+
+    const parser = await initializeParser()
+    const connection = getMockConnection()
+
+    const analyzer = new Analyzer({ console: connection.console, parser })
+    await analyzer.initiateBackgroundAnalysis({
+      rootPath: FIXTURE_FOLDER,
+    })
+
+    expect(
+      analyzer.findSymbolsMatchingWord({
+        word: 'BLU',
+        uri: FIXTURE_URI.INSTALL,
+        exactMatch: false,
+      }),
     ).toMatchInlineSnapshot(`Array []`)
 
     expect(
@@ -256,7 +368,27 @@ describe('findSymbolsMatchingWord', () => {
         uri: FIXTURE_URI.SOURCING,
         exactMatch: false,
       }),
-    ).toMatchInlineSnapshot(`Array []`)
+    ).toMatchInlineSnapshot(`
+Array [
+  Object {
+    "kind": 13,
+    "location": Object {
+      "range": Object {
+        "end": Object {
+          "character": 19,
+          "line": 6,
+        },
+        "start": Object {
+          "character": 0,
+          "line": 6,
+        },
+      },
+      "uri": "file://${FIXTURE_FOLDER}extension.inc",
+    },
+    "name": "BLUE",
+  },
+]
+`)
   })
 })
 

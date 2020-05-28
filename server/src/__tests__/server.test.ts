@@ -533,6 +533,28 @@ describe('server', () => {
         },
         Object {
           "data": Object {
+            "name": "my_var",
+            "type": 3,
+          },
+          "documentation": "### Variable: **my_var** - *defined in ../comment-doc-on-hover.sh*
+
+      \`\`\`txt
+      works for variables
+      \`\`\`",
+          "kind": 6,
+          "label": "my_var",
+        },
+        Object {
+          "data": Object {
+            "name": "my_other_var",
+            "type": 3,
+          },
+          "documentation": "### Variable: **my_other_var** - *defined in ../comment-doc-on-hover.sh*",
+          "kind": 6,
+          "label": "my_other_var",
+        },
+        Object {
+          "data": Object {
             "name": "RED",
             "type": 3,
           },
@@ -569,6 +591,174 @@ describe('server', () => {
         },
         Object {
           "data": Object {
+            "name": "ret",
+            "type": 3,
+          },
+          "documentation": "### Variable: **ret** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "ret",
+        },
+        Object {
+          "data": Object {
+            "name": "configures",
+            "type": 3,
+          },
+          "documentation": "### Variable: **configures** - *defined in ../install.sh*
+
+      \`\`\`txt
+      See what \\"npm_config_*\\" things there are in the env,
+      and make them permanent.
+      If this fails, it's not such a big deal.
+      \`\`\`",
+          "kind": 6,
+          "label": "configures",
+        },
+        Object {
+          "data": Object {
+            "name": "npm_config_loglevel",
+            "type": 3,
+          },
+          "documentation": "### Variable: **npm_config_loglevel** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "npm_config_loglevel",
+        },
+        Object {
+          "data": Object {
+            "name": "node",
+            "type": 3,
+          },
+          "documentation": "### Variable: **node** - *defined in ../install.sh*
+
+      \`\`\`txt
+      make sure that node exists
+      \`\`\`",
+          "kind": 6,
+          "label": "node",
+        },
+        Object {
+          "data": Object {
+            "name": "TMP",
+            "type": 3,
+          },
+          "documentation": "### Variable: **TMP** - *defined in ../install.sh*
+
+      \`\`\`txt
+      set the temp dir
+      \`\`\`",
+          "kind": 6,
+          "label": "TMP",
+        },
+        Object {
+          "data": Object {
+            "name": "BACK",
+            "type": 3,
+          },
+          "documentation": "### Variable: **BACK** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "BACK",
+        },
+        Object {
+          "data": Object {
+            "name": "tar",
+            "type": 3,
+          },
+          "documentation": "### Variable: **tar** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "tar",
+        },
+        Object {
+          "data": Object {
+            "name": "MAKE",
+            "type": 3,
+          },
+          "documentation": "### Variable: **MAKE** - *defined in ../install.sh*
+
+      \`\`\`txt
+      XXX For some reason, make is building all the docs every time.  This
+      is an annoying source of bugs. Figure out why this happens.
+      \`\`\`",
+          "kind": 6,
+          "label": "MAKE",
+        },
+        Object {
+          "data": Object {
+            "name": "make",
+            "type": 3,
+          },
+          "documentation": "### Variable: **make** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "make",
+        },
+        Object {
+          "data": Object {
+            "name": "clean",
+            "type": 3,
+          },
+          "documentation": "### Variable: **clean** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "clean",
+        },
+        Object {
+          "data": Object {
+            "name": "node_version",
+            "type": 3,
+          },
+          "documentation": "### Variable: **node_version** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "node_version",
+        },
+        Object {
+          "data": Object {
+            "name": "t",
+            "type": 3,
+          },
+          "documentation": "### Variable: **t** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "t",
+        },
+        Object {
+          "data": Object {
+            "name": "url",
+            "type": 3,
+          },
+          "documentation": "### Variable: **url** - *defined in ../install.sh*
+
+      \`\`\`txt
+      need to echo \\"\\" after, because Posix sed doesn't treat EOF
+      as an implied end of line.
+      \`\`\`",
+          "kind": 6,
+          "label": "url",
+        },
+        Object {
+          "data": Object {
+            "name": "ver",
+            "type": 3,
+          },
+          "documentation": "### Variable: **ver** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "ver",
+        },
+        Object {
+          "data": Object {
+            "name": "isnpm10",
+            "type": 3,
+          },
+          "documentation": "### Variable: **isnpm10** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "isnpm10",
+        },
+        Object {
+          "data": Object {
+            "name": "NODE",
+            "type": 3,
+          },
+          "documentation": "### Variable: **NODE** - *defined in ../install.sh*",
+          "kind": 6,
+          "label": "NODE",
+        },
+        Object {
+          "data": Object {
             "name": "USER",
             "type": 3,
           },
@@ -597,6 +787,55 @@ describe('server', () => {
       \`\`\`",
           "kind": 6,
           "label": "COMMENTS",
+        },
+        Object {
+          "data": Object {
+            "name": "FOO",
+            "type": 3,
+          },
+          "documentation": "### Variable: **FOO** - *defined in ../issue206.sh*",
+          "kind": 6,
+          "label": "FOO",
+        },
+        Object {
+          "data": Object {
+            "name": "BAR",
+            "type": 3,
+          },
+          "documentation": "### Variable: **BAR** - *defined in ../issue206.sh*",
+          "kind": 6,
+          "label": "BAR",
+        },
+        Object {
+          "data": Object {
+            "name": "PATH_INPUT",
+            "type": 3,
+          },
+          "documentation": "### Variable: **PATH_INPUT** - *defined in ../missing-node.sh*",
+          "kind": 6,
+          "label": "PATH_INPUT",
+        },
+        Object {
+          "data": Object {
+            "name": "PATH_OUTPUT",
+            "type": 3,
+          },
+          "documentation": "### Variable: **PATH_OUTPUT** - *defined in ../missing-node.sh*",
+          "kind": 6,
+          "label": "PATH_OUTPUT",
+        },
+        Object {
+          "data": Object {
+            "name": "foo",
+            "type": 3,
+          },
+          "documentation": "### Variable: **foo** - *defined in ../shellcheck/sourced.sh*
+
+      \`\`\`txt
+      !/bin/bash
+      \`\`\`",
+          "kind": 6,
+          "label": "foo",
         },
       ]
     `)

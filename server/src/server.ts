@@ -94,6 +94,7 @@ export default class BashServer {
 
       // Treesitter's diagnostics can be a bit inaccurate, so we only merge the
       // analyzer's diagnostics if the setting is enabled:
+      // FIXME: probably remove this flag
       if (config.getHighlightParsingError()) {
         diagnostics = diagnostics.concat(analyzeDiagnostics)
       }

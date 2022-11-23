@@ -1,17 +1,22 @@
+// get decendents of node
+// get parent of node
+// get child count of node
+// from point to node
+
 import * as fs from 'fs'
 import * as FuzzySearch from 'fuzzy-search'
+import ShellScript, { File as FileNode, Node as SyntaxNode, Parser } from 'mvdan-sh'
 import * as request from 'request-promise-native'
 import * as URI from 'urijs'
 import * as url from 'url'
 import { promisify } from 'util'
 import * as LSP from 'vscode-languageserver'
-import * as Parser from 'web-tree-sitter'
 
 import { getGlobPattern } from './config'
 import { flattenArray, flattenObjectValues } from './util/flatten'
 import { getFilePaths } from './util/fs'
+import * as ParserUtils from './util/parser-utils'
 import { getShebang, isBashShebang } from './util/shebang'
-import * as TreeSitterUtil from './util/tree-sitter'
 
 const readFileAsync = promisify(fs.readFile)
 
@@ -20,7 +25,7 @@ type Kinds = { [type: string]: LSP.SymbolKind }
 type Declarations = { [name: string]: LSP.SymbolInformation[] }
 type FileDeclarations = { [uri: string]: Declarations }
 
-type Trees = { [uri: string]: Parser.Tree }
+type Trees = { [uri: string]: FileNode }
 type Texts = { [uri: string]: string }
 
 /**
@@ -101,18 +106,16 @@ export default class Analyzer {
 
   private uriToTextDocument: { [uri: string]: LSP.TextDocument } = {}
 
-  private uriToTreeSitterTrees: Trees = {}
+  private uriToFileNodesMap: Trees = {}
 
   // We need this to find the word at a given point etc.
   private uriToFileContent: Texts = {}
 
   private uriToDeclarations: FileDeclarations = {}
 
-  private treeSitterTypeToLSPKind: Kinds = {
-    // These keys are using underscores as that's the naming convention in tree-sitter.
-    environment_variable_assignment: LSP.SymbolKind.Variable,
-    function_definition: LSP.SymbolKind.Function,
-    variable_assignment: LSP.SymbolKind.Variable,
+  private parserNodeTypeToLSPKind: Kinds = {
+    FuncDecl: LSP.SymbolKind.Function,
+    Assign: LSP.SymbolKind.Variable,
   }
 
   public constructor(parser: Parser) {
@@ -148,7 +151,10 @@ export default class Analyzer {
     params: LSP.TextDocumentPositionParams
     endpoint: string
   }): Promise<any> {
-    const leafNode = this.uriToTreeSitterTrees[
+    throw new Error('not implemented')
+    /*
+
+    const leafNode = this.uriToFileNodesMap[
       params.textDocument.uri
     ].rootNode.descendantForPosition({
       row: params.position.line,
@@ -207,13 +213,14 @@ export default class Analyzer {
 
       return { ...response, helpHTML }
     }
+    */
   }
 
   /**
    * Find all the locations where something named name has been defined.
    */
   public findReferences(name: string): LSP.Location[] {
-    const uris = Object.keys(this.uriToTreeSitterTrees)
+    const uris = Object.keys(this.uriToFileNodesMap)
     return flattenArray(uris.map((uri) => this.findOccurrences(uri, name)))
   }
 
@@ -222,30 +229,26 @@ export default class Analyzer {
    * It's currently not scope-aware.
    */
   public findOccurrences(uri: string, query: string): LSP.Location[] {
-    const tree = this.uriToTreeSitterTrees[uri]
+    const fileNode = this.uriToFileNodesMap[uri]
     const contents = this.uriToFileContent[uri]
 
     const locations: LSP.Location[] = []
 
-    TreeSitterUtil.forEach(tree.rootNode, (n) => {
+    ShellScript.syntax.Walk(fileNode, (node) => {
+      // TODO: rename n to node
       let name: null | string = null
       let range: null | LSP.Range = null
 
-      if (TreeSitterUtil.isReference(n)) {
-        const node = n.firstNamedChild || n
-        name = contents.slice(node.startIndex, node.endIndex)
-        range = TreeSitterUtil.range(node)
-      } else if (TreeSitterUtil.isDefinition(n)) {
-        const namedNode = n.firstNamedChild
-        if (namedNode) {
-          name = contents.slice(namedNode.startIndex, namedNode.endIndex)
-          range = TreeSitterUtil.range(namedNode)
-        }
+      if (ParserUtils.isReference(node) || ParserUtils.isDefinition(node)) {
+        name = contents.slice(node.Pos().Offset(), node.End().Offset())
+        range = ParserUtils.range(node)
       }
 
       if (name === query && range !== null) {
         locations.push(LSP.Location.create(uri, range))
       }
+
+      return true
     })
 
     return locations
@@ -294,101 +297,49 @@ export default class Analyzer {
   public analyze(uri: string, document: LSP.TextDocument): LSP.Diagnostic[] {
     const contents = document.getText()
 
-    const tree = this.parser.parse(contents)
+    // FIXME: handle crash
+    const fileNode = this.parser.Parse(contents)
 
     this.uriToTextDocument[uri] = document
-    this.uriToTreeSitterTrees[uri] = tree
+    this.uriToFileNodesMap[uri] = fileNode
     this.uriToDeclarations[uri] = {}
     this.uriToFileContent[uri] = contents
 
-    const problems: LSP.Diagnostic[] = []
-
-    TreeSitterUtil.forEach(tree.rootNode, (n: Parser.SyntaxNode) => {
-      if (n.type === 'ERROR') {
-        problems.push(
-          LSP.Diagnostic.create(
-            TreeSitterUtil.range(n),
-            'Failed to parse expression',
-            LSP.DiagnosticSeverity.Error,
-          ),
-        )
-        return
-      } else if (TreeSitterUtil.isDefinition(n)) {
-        const named = n.firstNamedChild
-
-        if (named === null) {
-          return
-        }
-
-        const name = contents.slice(named.startIndex, named.endIndex)
+    ShellScript.syntax.Walk(fileNode, (n) => {
+      if (ParserUtils.isDefinition(n)) {
+        const name = contents.slice(n.Pos().Offset(), n.End().Offset())
         const namedDeclarations = this.uriToDeclarations[uri][name] || []
-
-        const parent = TreeSitterUtil.findParent(
-          n,
-          (p) => p.type === 'function_definition',
-        )
-        const parentName =
-          parent && parent.firstNamedChild
-            ? contents.slice(
-                parent.firstNamedChild.startIndex,
-                parent.firstNamedChild.endIndex,
-              )
-            : '' // TODO: unsure what we should do here?
 
         namedDeclarations.push(
           LSP.SymbolInformation.create(
             name,
-            this.treeSitterTypeToLSPKind[n.type],
-            TreeSitterUtil.range(n),
+            this.parserNodeTypeToLSPKind[ShellScript.syntax.NodeType(n)],
+            ParserUtils.range(n),
             uri,
-            parentName,
           ),
         )
         this.uriToDeclarations[uri][name] = namedDeclarations
       }
+      return true
     })
 
-    function findMissingNodes(node: Parser.SyntaxNode) {
-      if (node.isMissing()) {
-        problems.push(
-          LSP.Diagnostic.create(
-            TreeSitterUtil.range(node),
-            `Syntax error: expected "${node.type}" somewhere in the file`,
-            LSP.DiagnosticSeverity.Warning,
-          ),
-        )
-      } else if (node.hasError()) {
-        node.children.forEach(findMissingNodes)
-      }
-    }
-
-    findMissingNodes(tree.rootNode)
-
-    return problems
+    return []
   }
 
   /**
    * Find the node at the given point.
    */
-  private nodeAtPoint(
-    uri: string,
-    line: number,
-    column: number,
-  ): Parser.SyntaxNode | null {
-    const document = this.uriToTreeSitterTrees[uri]
-
-    if (!document?.rootNode) {
-      // Check for lacking rootNode (due to failed parse?)
-      return null
-    }
-
-    return document.rootNode.descendantForPosition({ row: line, column })
+  private nodeAtPoint(uri: string, line: number, column: number): SyntaxNode | null {
+    // FIXME
+    return null
   }
 
   /**
    * Find the full word at the given point.
    */
   public wordAtPoint(uri: string, line: number, column: number): string | null {
+    return null
+    /*
     const node = this.nodeAtPoint(uri, line, column)
 
     if (!node || node.childCount > 0 || node.text.trim() === '') {
@@ -396,12 +347,15 @@ export default class Analyzer {
     }
 
     return node.text.trim()
+    */
   }
 
   /**
    * Find the name of the command at the given point.
    */
   public commandNameAtPoint(uri: string, line: number, column: number): string | null {
+    return null
+    /*
     let node = this.nodeAtPoint(uri, line, column)
 
     while (node && node.type !== 'command') {
@@ -419,6 +373,7 @@ export default class Analyzer {
     }
 
     return firstChild.text.trim()
+    */
   }
 
   /**

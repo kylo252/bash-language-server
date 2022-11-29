@@ -1,5 +1,5 @@
 import { spawn } from 'child_process'
-import * as LSP from 'vscode-languageserver'
+import * as LSP from 'vscode-languageserver/node'
 
 function formatMessage(comment: ShellcheckComment): string {
   return (comment.code ? `SC${comment.code}: ` : '') + comment.message
